@@ -1,0 +1,959 @@
+SQL> -- 1
+SQL> -- a
+SQL> BEGIN
+  2    FOR i IN (SELECT null FROM user_tables WHERE table_name = 'TRANSACTION') LOOP
+  3  	 EXECUTE IMMEDIATE 'DROP TABLE transaction CASCADE CONSTRAINTS';
+  4    END LOOP;
+  5    FOR i IN (SELECT null FROM user_sequences WHERE sequence_name = 'TRANSACTION_S1') LOOP
+  6  	 EXECUTE IMMEDIATE 'DROP SEQUENCE transaction_s1';
+  7    END LOOP;
+  8  END;
+  9  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> CREATE TABLE transaction
+  2  ( transaction_id		 NUMBER
+  3  , transaction_account	 VARCHAR2(15)	CONSTRAINT ACC1   NOT NULL
+  4  , transaction_type 	 NUMBER 	CONSTRAINT TYP1   NOT NULL
+  5  , transaction_date 	 DATE		CONSTRAINT DAT1   NOT NULL
+  6  , transaction_amount	 NUMBER 	CONSTRAINT AMU1   NOT NULL
+  7  , rental_id		 NUMBER 	CONSTRAINT REN1   NOT NULL
+  8  , payment_method_type	 NUMBER 	CONSTRAINT PMT1   NOT NULL
+  9  , payment_account_number	 VARCHAR2(20)	CONSTRAINT ACCN1  NOT NULL
+ 10  , created_by		 NUMBER 	CONSTRAINT CRE1   NOT NULL
+ 11  , creation_date		 DATE		CONSTRAINT CDATE1 NOT NULL
+ 12  , last_updated_by		 NUMBER 	CONSTRAINT LUB1   NOT NULL
+ 13  , last_update_date 	 DATE		CONSTRAINT LDATE1 NOT NULL
+ 14  , CONSTRAINT pk_trans_1	  PRIMARY KEY(transaction_id)
+ 15  , CONSTRAINT fk_trans_1	  FOREIGN KEY(transaction_type) REFERENCES common_lookup(common_lookup_id)
+ 16  , CONSTRAINT fk_trans_2	  FOREIGN KEY(rental_id) REFERENCES rental(rental_id)
+ 17  , CONSTRAINT fk_trans_3	  FOREIGN KEY(payment_method_type) REFERENCES common_lookup(common_lookup_id)
+ 18  , CONSTRAINT fk_trans_4	  FOREIGN KEY(created_by) REFERENCES system_user(system_user_id)
+ 19  , CONSTRAINT fk_trans_5	  FOREIGN KEY(last_updated_by) REFERENCES system_user(system_user_id));
+
+Table created.
+
+SQL> 
+SQL> CREATE SEQUENCE transaction_s1 START WITH 1;
+
+Sequence created.
+
+SQL> 
+SQL> 
+SQL> COLUMN table_name	 FORMAT A14
+SQL> COLUMN column_id	 FORMAT 9999
+SQL> COLUMN column_name  FORMAT A22
+SQL> COLUMN data_type	 FORMAT A12
+SQL> SELECT   table_name
+  2  ,	      column_id
+  3  ,	      column_name
+  4  ,	      CASE
+  5  		WHEN nullable = 'N' THEN 'NOT NULL'
+  6  		ELSE ''
+  7  	      END AS nullable
+  8  ,	      CASE
+  9  		WHEN data_type IN ('CHAR','VARCHAR2','NUMBER') THEN
+ 10  		  data_type||'('||data_length||')'
+ 11  		ELSE
+ 12  		  data_type
+ 13  	      END AS data_type
+ 14  FROM     user_tab_columns
+ 15  WHERE    table_name = 'TRANSACTION'
+ 16  ORDER BY 2;
+
+TABLE_NAME     COLUMN_ID COLUMN_NAME            NULLABLE DATA_TYPE              
+-------------- --------- ---------------------- -------- ------------           
+TRANSACTION            1 TRANSACTION_ID         NOT NULL NUMBER(22)             
+TRANSACTION            2 TRANSACTION_ACCOUNT    NOT NULL VARCHAR2(15)           
+TRANSACTION            3 TRANSACTION_TYPE       NOT NULL NUMBER(22)             
+TRANSACTION            4 TRANSACTION_DATE       NOT NULL DATE                   
+TRANSACTION            5 TRANSACTION_AMOUNT     NOT NULL NUMBER(22)             
+TRANSACTION            6 RENTAL_ID              NOT NULL NUMBER(22)             
+TRANSACTION            7 PAYMENT_METHOD_TYPE    NOT NULL NUMBER(22)             
+TRANSACTION            8 PAYMENT_ACCOUNT_NUMBER NOT NULL VARCHAR2(20)           
+TRANSACTION            9 CREATED_BY             NOT NULL NUMBER(22)             
+TRANSACTION           10 CREATION_DATE          NOT NULL DATE                   
+TRANSACTION           11 LAST_UPDATED_BY        NOT NULL NUMBER(22)             
+TRANSACTION           12 LAST_UPDATE_DATE       NOT NULL DATE                   
+
+12 rows selected.
+
+SQL> 
+SQL> --b
+SQL> 
+SQL> CREATE UNIQUE INDEX NATURAL_KEY
+  2   ON transaction (rental_id, transaction_type, transaction_date, payment_method_type, payment_account_number, transaction_account);
+
+Index created.
+
+SQL> 
+SQL> COLUMN table_name	     FORMAT A12
+SQL> COLUMN index_name	     FORMAT A16
+SQL> COLUMN uniqueness	     FORMAT A8
+SQL> COLUMN column_position  FORMAT 9999
+SQL> COLUMN column_name      FORMAT A24
+SQL> SELECT   i.table_name
+  2  ,	      i.index_name
+  3  ,	      i.uniqueness
+  4  ,	      ic.column_position
+  5  ,	      ic.column_name
+  6  FROM     user_indexes i INNER JOIN user_ind_columns ic
+  7  ON       i.index_name = ic.index_name
+  8  WHERE    i.table_name = 'TRANSACTION'
+  9  AND      i.uniqueness = 'UNIQUE'
+ 10  AND      i.index_name = 'NATURAL_KEY';
+
+TABLE_NAME   INDEX_NAME       UNIQUENE COLUMN_POSITION COLUMN_NAME              
+------------ ---------------- -------- --------------- ------------------------ 
+TRANSACTION  NATURAL_KEY      UNIQUE                 1 RENTAL_ID                
+TRANSACTION  NATURAL_KEY      UNIQUE                 2 TRANSACTION_TYPE         
+TRANSACTION  NATURAL_KEY      UNIQUE                 3 TRANSACTION_DATE         
+TRANSACTION  NATURAL_KEY      UNIQUE                 4 PAYMENT_METHOD_TYPE      
+TRANSACTION  NATURAL_KEY      UNIQUE                 5 PAYMENT_ACCOUNT_NUMBER   
+TRANSACTION  NATURAL_KEY      UNIQUE                 6 TRANSACTION_ACCOUNT      
+
+6 rows selected.
+
+SQL> 
+SQL> --2
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_code
+  6  , common_lookup_type
+  7  , common_lookup_meaning
+  8  , created_by
+  9  , creation_date
+ 10  , last_updated_by
+ 11  , last_update_date)
+ 12  VALUES
+ 13  ( common_lookup_s1.NEXTVAL
+ 14  , 'TRANSACTION'
+ 15  , 'TRANSACTION_TYPE'
+ 16  , 'CR'
+ 17  , 'CREDIT'
+ 18  , 'Credit'
+ 19  , 1
+ 20  , SYSDATE
+ 21  , 1
+ 22  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_code
+  6  , common_lookup_type
+  7  , common_lookup_meaning
+  8  , created_by
+  9  , creation_date
+ 10  , last_updated_by
+ 11  , last_update_date)
+ 12  VALUES
+ 13  ( common_lookup_s1.NEXTVAL
+ 14  , 'TRANSACTION'
+ 15  , 'TRANSACTION_TYPE'
+ 16  , 'DR'
+ 17  , 'DEBIT'
+ 18  , 'Debit'
+ 19  , 1
+ 20  , SYSDATE
+ 21  , 1
+ 22  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_type
+  6  , common_lookup_meaning
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'TRANSACTION'
+ 14  , 'PAYMENT_METHOD_TYPE'
+ 15  , 'DISCOVER_CARD'
+ 16  , 'Discover card'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_type
+  6  , common_lookup_meaning
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'TRANSACTION'
+ 14  , 'PAYMENT_METHOD_TYPE'
+ 15  , 'VISA_CARD'
+ 16  , 'Visa_card'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_type
+  6  , common_lookup_meaning
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'TRANSACTION'
+ 14  , 'PAYMENT_METHOD_TYPE'
+ 15  , 'MASTER_CARD'
+ 16  , 'Master card'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_type
+  6  , common_lookup_meaning
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'TRANSACTION'
+ 14  , 'PAYMENT_METHOD_TYPE'
+ 15  , 'CASH'
+ 16  , 'Cash'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> COLUMN common_lookup_table  FORMAT A20 HEADING "COMMON_LOOKUP_TABLE"
+SQL> COLUMN common_lookup_column FORMAT A20 HEADING "COMMON_LOOKUP_COLUMN"
+SQL> COLUMN common_lookup_type	 FORMAT A20 HEADING "COMMON_LOOKUP_TYPE"
+SQL> SELECT   common_lookup_table
+  2  ,	      common_lookup_column
+  3  ,	      common_lookup_type
+  4  FROM     common_lookup
+  5  WHERE    common_lookup_table = 'TRANSACTION'
+  6  AND      common_lookup_column IN ('TRANSACTION_TYPE','PAYMENT_METHOD_TYPE')
+  7  ORDER BY 1, 2, 3 DESC;
+
+COMMON_LOOKUP_TABLE  COMMON_LOOKUP_COLUMN COMMON_LOOKUP_TYPE                    
+-------------------- -------------------- --------------------                  
+TRANSACTION          PAYMENT_METHOD_TYPE  VISA_CARD                             
+                                                                                
+                                                                                
+TRANSACTION          PAYMENT_METHOD_TYPE  MASTER_CARD                           
+                                                                                
+                                                                                
+TRANSACTION          PAYMENT_METHOD_TYPE  DISCOVER_CARD                         
+                                                                                
+                                                                                
+TRANSACTION          PAYMENT_METHOD_TYPE  CASH                                  
+                                                                                
+                                                                                
+TRANSACTION          TRANSACTION_TYPE     DEBIT                                 
+                                                                                
+                                                                                
+TRANSACTION          TRANSACTION_TYPE     CREDIT                                
+                                                                                
+                                                                                
+
+6 rows selected.
+
+SQL> 
+SQL> -- 3
+SQL> 
+SQL> --a
+SQL> 
+SQL> BEGIN
+  2    FOR i IN (SELECT null FROM user_tables WHERE table_name = 'AIRPORT') LOOP
+  3  	 EXECUTE IMMEDIATE 'DROP TABLE airport CASCADE CONSTRAINTS';
+  4    END LOOP;
+  5    FOR i IN (SELECT null FROM user_sequences WHERE sequence_name = 'AIRPORT_S1') LOOP
+  6  	 EXECUTE IMMEDIATE 'DROP SEQUENCE airport_s1';
+  7    END LOOP;
+  8  END;
+  9  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> CREATE TABLE airport
+  2  ( airport_id	     NUMBER
+  3  , airport_code	     VARCHAR2(3)	CONSTRAINT API1   NOT NULL
+  4  , airport_city	     VARCHAR2(30)	CONSTRAINT APC1   NOT NULL
+  5  , city		     VARCHAR2(30)	CONSTRAINT APCI1   NOT NULL
+  6  , state_province	     VARCHAR2(30)	CONSTRAINT SP1	 NOT NULL
+  7  , created_by		 NUMBER 	CONSTRAINT CRBY1   NOT NULL
+  8  , creation_date		 DATE		CONSTRAINT CDAT1 NOT NULL
+  9  , last_updated_by		 NUMBER 	CONSTRAINT LB1	 NOT NULL
+ 10  , last_update_date 	 DATE		CONSTRAINT LDAT1 NOT NULL
+ 11  , CONSTRAINT pk_air_1	PRIMARY KEY(airport_id)
+ 12  , CONSTRAINT fk_air_1	FOREIGN KEY(created_by) REFERENCES system_user(system_user_id)
+ 13  , CONSTRAINT fk_air_2	FOREIGN KEY(last_updated_by) REFERENCES system_user(system_user_id));
+
+Table created.
+
+SQL> 
+SQL> CREATE SEQUENCE airport_s1 START WITH 1;
+
+Sequence created.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> COLUMN table_name	 FORMAT A14
+SQL> COLUMN column_id	 FORMAT 9999
+SQL> COLUMN column_name  FORMAT A22
+SQL> COLUMN data_type	 FORMAT A12
+SQL> SELECT   table_name
+  2  ,	      column_id
+  3  ,	      column_name
+  4  ,	      CASE
+  5  		WHEN nullable = 'N' THEN 'NOT NULL'
+  6  		ELSE ''
+  7  	      END AS nullable
+  8  ,	      CASE
+  9  		WHEN data_type IN ('CHAR','VARCHAR2','NUMBER') THEN
+ 10  		  data_type||'('||data_length||')'
+ 11  		ELSE
+ 12  		  data_type
+ 13  	      END AS data_type
+ 14  FROM     user_tab_columns
+ 15  WHERE    table_name = 'AIRPORT'
+ 16  ORDER BY 2;
+
+TABLE_NAME     COLUMN_ID COLUMN_NAME            NULLABLE DATA_TYPE              
+-------------- --------- ---------------------- -------- ------------           
+AIRPORT                1 AIRPORT_ID             NOT NULL NUMBER(22)             
+AIRPORT                2 AIRPORT_CODE           NOT NULL VARCHAR2(3)            
+AIRPORT                3 AIRPORT_CITY           NOT NULL VARCHAR2(30)           
+AIRPORT                4 CITY                   NOT NULL VARCHAR2(30)           
+AIRPORT                5 STATE_PROVINCE         NOT NULL VARCHAR2(30)           
+AIRPORT                6 CREATED_BY             NOT NULL NUMBER(22)             
+AIRPORT                7 CREATION_DATE          NOT NULL DATE                   
+AIRPORT                8 LAST_UPDATED_BY        NOT NULL NUMBER(22)             
+AIRPORT                9 LAST_UPDATE_DATE       NOT NULL DATE                   
+
+9 rows selected.
+
+SQL> 
+SQL> -- b
+SQL> 
+SQL> CREATE UNIQUE INDEX NK_AIRPORT
+  2   ON airport (airport_code, airport_city, city, state_province);
+
+Index created.
+
+SQL> 
+SQL> COLUMN table_name	     FORMAT A12
+SQL> COLUMN index_name	     FORMAT A16
+SQL> COLUMN uniqueness	     FORMAT A8
+SQL> COLUMN column_position  FORMAT 9999
+SQL> COLUMN column_name      FORMAT A24
+SQL> SELECT   i.table_name
+  2  ,	      i.index_name
+  3  ,	      i.uniqueness
+  4  ,	      ic.column_position
+  5  ,	      ic.column_name
+  6  FROM     user_indexes i INNER JOIN user_ind_columns ic
+  7  ON       i.index_name = ic.index_name
+  8  WHERE    i.table_name = 'AIRPORT'
+  9  AND      i.uniqueness = 'UNIQUE'
+ 10  AND      i.index_name = 'NK_AIRPORT';
+
+TABLE_NAME   INDEX_NAME       UNIQUENE COLUMN_POSITION COLUMN_NAME              
+------------ ---------------- -------- --------------- ------------------------ 
+AIRPORT      NK_AIRPORT       UNIQUE                 1 AIRPORT_CODE             
+AIRPORT      NK_AIRPORT       UNIQUE                 2 AIRPORT_CITY             
+AIRPORT      NK_AIRPORT       UNIQUE                 3 CITY                     
+AIRPORT      NK_AIRPORT       UNIQUE                 4 STATE_PROVINCE           
+
+4 rows selected.
+
+SQL> 
+SQL> -- c
+SQL> 
+SQL> INSERT INTO airport
+  2  ( airport_id
+  3  , airport_code
+  4  , airport_city
+  5  , city
+  6  , state_province
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'LAX'
+ 14  , 'Los Angeles'
+ 15  , 'Los Angeles'
+ 16  , 'California'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO airport
+  2  ( airport_id
+  3  , airport_code
+  4  , airport_city
+  5  , city
+  6  , state_province
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'SLC'
+ 14  , 'Salt Lake City'
+ 15  , 'Provo'
+ 16  , 'Utah'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO airport
+  2  ( airport_id
+  3  , airport_code
+  4  , airport_city
+  5  , city
+  6  , state_province
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'SLC'
+ 14  , 'Salt Lake City'
+ 15  , 'Spanish Fork'
+ 16  , 'Utah'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO airport
+  2  ( airport_id
+  3  , airport_code
+  4  , airport_city
+  5  , city
+  6  , state_province
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'SFO'
+ 14  , 'San Francisco'
+ 15  , 'San Francisco'
+ 16  , 'California'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO airport
+  2  ( airport_id
+  3  , airport_code
+  4  , airport_city
+  5  , city
+  6  , state_province
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'SJC'
+ 14  , 'San Jose'
+ 15  , 'San Jose'
+ 16  , 'California'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO airport
+  2  ( airport_id
+  3  , airport_code
+  4  , airport_city
+  5  , city
+  6  , state_province
+  7  , created_by
+  8  , creation_date
+  9  , last_updated_by
+ 10  , last_update_date)
+ 11  VALUES
+ 12  ( common_lookup_s1.NEXTVAL
+ 13  , 'SJC'
+ 14  , 'San Jose'
+ 15  , 'San Carlos'
+ 16  , 'California'
+ 17  , 1
+ 18  , SYSDATE
+ 19  , 1
+ 20  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> COLUMN code	   FORMAT A4
+SQL> COLUMN airport_city   FORMAT A14
+SQL> COLUMN city	   FORMAT A14
+SQL> COLUMN state_province FORMAT A10 HEADING "State or|Province"
+SQL> SELECT   airport_code AS code
+  2  ,	      airport_city
+  3  ,	      city
+  4  ,	      state_province
+  5  FROM     airport;
+
+                                   State or                                     
+CODE AIRPORT_CITY   City           Province                                     
+---- -------------- -------------- ----------                                   
+LAX  Los Angeles    Los Angeles    California                                   
+SFO  San Francisco  San Francisco  California                                   
+SJC  San Jose       San Carlos     California                                   
+SJC  San Jose       San Jose       California                                   
+SLC  Salt Lake City Provo          Utah                                         
+SLC  Salt Lake City Spanish Fork   Utah                                         
+
+6 rows selected.
+
+SQL> 
+SQL> -- d
+SQL> 
+SQL> BEGIN
+  2    FOR i IN (SELECT null FROM user_tables WHERE table_name = 'ACCOUNT_LIST') LOOP
+  3  	 EXECUTE IMMEDIATE 'DROP TABLE account_list CASCADE CONSTRAINTS';
+  4    END LOOP;
+  5    FOR i IN (SELECT null FROM user_sequences WHERE sequence_name = 'ACCOUNT_LIST_S1') LOOP
+  6  	 EXECUTE IMMEDIATE 'DROP SEQUENCE account_list_s1';
+  7    END LOOP;
+  8  END;
+  9  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> CREATE TABLE account_list
+  2  ( account_list_id		 NUMBER
+  3  , account_number		 VARCHAR2(10)	  CONSTRAINT ACN1   NOT NULL
+  4  , consumed_date		 DATE
+  5  , consumed_by		 NUMBER
+  6  , created_by		 NUMBER 	 CONSTRAINT CBY1   NOT NULL
+  7  , creation_date		 DATE		 CONSTRAINT CDT1   NOT NULL
+  8  , last_updated_by		 NUMBER 	 CONSTRAINT LAB1   NOT NULL
+  9  , last_update_date 	 DATE		 CONSTRAINT LADT1  NOT NULL
+ 10  , CONSTRAINT pk_account_list_1	 PRIMARY KEY(account_list_id)
+ 11  , CONSTRAINT fk_account_list_1	 FOREIGN KEY(consumed_by) REFERENCES system_user(system_user_id)
+ 12  , CONSTRAINT fk_account_list_2	 FOREIGN KEY(created_by) REFERENCES system_user(system_user_id)
+ 13  , CONSTRAINT fk_account_list_3	 FOREIGN KEY(last_updated_by) REFERENCES system_user(system_user_id));
+
+Table created.
+
+SQL> 
+SQL> CREATE SEQUENCE account_list_s1 START WITH 1;
+
+Sequence created.
+
+SQL> 
+SQL> 
+SQL> COLUMN table_name	 FORMAT A14
+SQL> COLUMN column_id	 FORMAT 9999
+SQL> COLUMN column_name  FORMAT A22
+SQL> COLUMN data_type	 FORMAT A12
+SQL> SELECT   table_name
+  2  ,	      column_id
+  3  ,	      column_name
+  4  ,	      CASE
+  5  		WHEN nullable = 'N' THEN 'NOT NULL'
+  6  		ELSE ''
+  7  	      END AS nullable
+  8  ,	      CASE
+  9  		WHEN data_type IN ('CHAR','VARCHAR2','NUMBER') THEN
+ 10  		  data_type||'('||data_length||')'
+ 11  		ELSE
+ 12  		  data_type
+ 13  	      END AS data_type
+ 14  FROM     user_tab_columns
+ 15  WHERE    table_name = 'ACCOUNT_LIST'
+ 16  ORDER BY 2;
+
+TABLE_NAME     COLUMN_ID COLUMN_NAME            NULLABLE DATA_TYPE              
+-------------- --------- ---------------------- -------- ------------           
+ACCOUNT_LIST           1 ACCOUNT_LIST_ID        NOT NULL NUMBER(22)             
+ACCOUNT_LIST           2 ACCOUNT_NUMBER         NOT NULL VARCHAR2(10)           
+ACCOUNT_LIST           3 CONSUMED_DATE          <Null>   DATE                   
+ACCOUNT_LIST           4 CONSUMED_BY            <Null>   NUMBER(22)             
+ACCOUNT_LIST           5 CREATED_BY             NOT NULL NUMBER(22)             
+ACCOUNT_LIST           6 CREATION_DATE          NOT NULL DATE                   
+ACCOUNT_LIST           7 LAST_UPDATED_BY        NOT NULL NUMBER(22)             
+ACCOUNT_LIST           8 LAST_UPDATE_DATE       NOT NULL DATE                   
+
+8 rows selected.
+
+SQL> 
+SQL> -- e
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE seed_account_list IS
+  2  BEGIN
+  3    /* Set savepoint. */
+  4    SAVEPOINT all_or_none;
+  5  
+  6    FOR i IN (SELECT DISTINCT airport_code FROM airport) LOOP
+  7  	 FOR j IN 1..50 LOOP
+  8  
+  9  	   INSERT INTO account_list
+ 10  	   VALUES
+ 11  	   ( account_list_s1.NEXTVAL
+ 12  	   , i.airport_code||'-'||LPAD(j,6,'0')
+ 13  	   , NULL
+ 14  	   , NULL
+ 15  	   , 2
+ 16  	   , SYSDATE
+ 17  	   , 2
+ 18  	   , SYSDATE);
+ 19  	 END LOOP;
+ 20    END LOOP;
+ 21  
+ 22    /* Commit the writes as a group. */
+ 23    COMMIT;
+ 24  
+ 25  EXCEPTION
+ 26    WHEN OTHERS THEN
+ 27  	 /* This undoes all DML statements to this point in the procedure. */
+ 28  	 ROLLBACK TO SAVEPOINT all_or_none;
+ 29  END;
+ 30  /
+
+Procedure created.
+
+SQL> 
+SQL> EXECUTE seed_account_list();
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> COLUMN object_name FORMAT A18
+SQL> COLUMN object_type FORMAT A12
+SQL> SELECT   object_name
+  2  ,	      object_type
+  3  FROM     user_objects
+  4  WHERE    object_name = 'SEED_ACCOUNT_LIST';
+
+OBJECT_NAME        OBJECT_TYPE                                                  
+------------------ ------------                                                 
+SEED_ACCOUNT_LIST  PROCEDURE                                                    
+
+1 row selected.
+
+SQL> 
+SQL> 
+SQL> COLUMN airport FORMAT A7
+SQL> SELECT   SUBSTR(account_number,1,3) AS "Airport"
+  2  ,	      COUNT(*) AS "# Accounts"
+  3  FROM     account_list
+  4  WHERE    consumed_date IS NULL
+  5  GROUP BY SUBSTR(account_number,1,3)
+  6  ORDER BY 1;
+
+Airport # Accounts                                                              
+------- ----------                                                              
+LAX             50                                                              
+SFO             50                                                              
+SJC             50                                                              
+SLC             50                                                              
+
+4 rows selected.
+
+SQL> 
+SQL> -- f
+SQL> 
+SQL> UPDATE address
+  2  SET    state_province = 'California'
+  3  WHERE  state_province = 'CA';
+
+7 rows updated.
+
+SQL> 
+SQL> -- g
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE update_member_account IS
+  2    lv_account_number VARCHAR2(10);
+  3    CURSOR member_cursor IS
+  4  	 SELECT   DISTINCT
+  5  		  m.member_id
+  6  	 ,	  a.city
+  7  	 ,	  a.state_province
+  8  	 FROM	  member m INNER JOIN contact c
+  9  	 ON	  m.member_id = c.member_id INNER JOIN address a
+ 10  	 ON	  c.contact_id = a.contact_id
+ 11  	 ORDER BY m.member_id;
+ 12  
+ 13  BEGIN
+ 14  
+ 15    SAVEPOINT all_or_none;
+ 16  
+ 17    FOR i IN member_cursor LOOP
+ 18  
+ 19  	   SELECT al.account_number
+ 20  	   INTO   lv_account_number
+ 21  	   FROM   account_list al INNER JOIN airport ap
+ 22  	   ON	  SUBSTR(al.account_number,1,3) = ap.airport_code
+ 23  	   WHERE  ap.city = i.city
+ 24  	   AND	  ap.state_province = i.state_province
+ 25  	   AND	  consumed_by IS NULL
+ 26  	   AND	  consumed_date IS NULL
+ 27  	   AND	  ROWNUM < 2;
+ 28  
+ 29  	   UPDATE member
+ 30  	   SET	  account_number = lv_account_number
+ 31  	   WHERE  member_id = i.member_id;
+ 32  
+ 33  
+ 34  	   UPDATE account_list
+ 35  	   SET	  consumed_by = 2
+ 36  	   ,	  consumed_date = SYSDATE
+ 37  	   WHERE  account_number = lv_account_number;
+ 38  
+ 39    END LOOP;
+ 40    COMMIT;
+ 41  
+ 42  EXCEPTION
+ 43    WHEN NO_DATA_FOUND THEN
+ 44  	 dbms_output.put_line('You have an error in your AIRPORT table inserts.');
+ 45  
+ 46  
+ 47  	 ROLLBACK TO SAVEPOINT all_or_none;
+ 48    WHEN OTHERS THEN
+ 49  	 ROLLBACK TO SAVEPOINT all_or_none;
+ 50  END;
+ 51  /
+
+Procedure created.
+
+SQL> 
+SQL> COLUMN object_name FORMAT A22
+SQL> COLUMN object_type FORMAT A12
+SQL> SELECT   object_name
+  2  ,	      object_type
+  3  FROM     user_objects
+  4  WHERE    object_name = 'UPDATE_MEMBER_ACCOUNT';
+
+OBJECT_NAME            OBJECT_TYPE                                              
+---------------------- ------------                                             
+UPDATE_MEMBER_ACCOUNT  PROCEDURE                                                
+
+1 row selected.
+
+SQL> 
+SQL> EXECUTE update_member_account();
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> COLUMN member_id	   FORMAT 999999 HEADING "Member|ID #"
+SQL> COLUMN last_name	   FORMAT A10	 HEADING "Last|Name"
+SQL> COLUMN account_number FORMAT A10 HEADING "Account|Number"
+SQL> COLUMN city	   FORMAT A16 HEADING "City"
+SQL> COLUMN state_province FORMAT A10 HEADING "State or|Province"
+SQL> 
+SQL> -- Query distinct members and addresses.
+SQL> SELECT   DISTINCT
+  2  	      m.member_id
+  3  ,	      c.last_name
+  4  ,	      m.account_number
+  5  ,	      a.city
+  6  ,	      a.state_province
+  7  FROM     member m INNER JOIN contact c
+  8  ON       m.member_id = c.member_id INNER JOIN address a
+  9  ON       c.contact_id = a.contact_id
+ 10  ORDER BY 1;
+
+ Member Last       Account                     State or                         
+   ID # Name       Number     City             Province                         
+------- ---------- ---------- ---------------- ----------                       
+   1001 Winn       SJC-000001 San Jose         California                       
+   1002 Vizquel    SJC-000002 San Jose         California                       
+   1003 Sweeney    SJC-000003 San Jose         California                       
+   1004 Clinton    SLC-000001 Provo            Utah                             
+   1005 Moss       SLC-000002 Provo            Utah                             
+   1006 Gretelz    SLC-000003 Provo            Utah                             
+   1007 Royal      SLC-000004 Provo            Utah                             
+   1008 Smith      SLC-000005 Spanish Fork     Utah                             
+   1009 Potter     SLC-000006 Provo            Utah                             
+
+9 rows selected.
+
+SQL> 
+SQL> -- 4
+SQL> 
+SQL> BEGIN
+  2    FOR i IN (SELECT null FROM user_tables WHERE table_name = 'TRANSACTION_UPLOAD') LOOP
+  3  	 EXECUTE IMMEDIATE 'DROP TABLE transaction_upload CASCADE CONSTRAINTS';
+  4    END LOOP;
+  5    FOR i IN (SELECT null FROM user_sequences WHERE sequence_name = 'TRANSACTION_UPLOAD_S1') LOOP
+  6  	 EXECUTE IMMEDIATE 'DROP SEQUENCE transaction_upload_s1';
+  7    END LOOP;
+  8  END;
+  9  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> CREATE TABLE transaction_upload
+  2  ( account_number		 VARCHAR2(10)
+  3  , first_name		 VARCHAR2(20)
+  4  , middle_name		 VARCHAR2(20)
+  5  , last_name		 VARCHAR2(20)
+  6  , checkout_date		 DATE
+  7  , return_date		 DATE
+  8  , rental_item_type 	 VARCHAR2(12)
+  9  , transaction_type 	 VARCHAR2(14)
+ 10  , transaction_amount	 NUMBER
+ 11  , transaction_date 	 DATE
+ 12  , item_id			 NUMBER
+ 13  , payment_method_type	 VARCHAR2(14)
+ 14  , payment_account_number	 VARCHAR2(19))
+ 15   ORGANIZATION EXTERNAL
+ 16  	 ( TYPE ORACLE_LOADER
+ 17  	   DEFAULT DIRECTORY "UPLOAD"
+ 18  	   ACCESS PARAMETERS
+ 19  	   ( RECORDS DELIMITED BY NEWLINE CHARACTERSET US7ASCII
+ 20  	   BADFILE     'UPLOAD':'transaction_upload.bad'
+ 21  	   DISCARDFILE 'UPLOAD':'transaction_upload.dis'
+ 22  	   LOGFILE     'UPLOAD':'transaction_upload.log'
+ 23  	   FIELDS TERMINATED BY ','
+ 24  	   OPTIONALLY ENCLOSED BY "'"
+ 25  	   MISSING FIELD VALUES ARE NULL     )
+ 26  	   LOCATION
+ 27  	    ( 'transaction_upload.csv'
+ 28  	    )
+ 29  	 )
+ 30  	REJECT LIMIT UNLIMITED;
+
+Table created.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> SET LONG 200000  -- Enables the display of the full statement.
+SP2-0158: unknown SET option "--"
+SQL> SELECT   dbms_metadata.get_ddl('TABLE','TRANSACTION_UPLOAD') AS "Table Description"
+  2  FROM     dual;
+
+Table Description                                                               
+--------------------------------------------------------------------------------
+                                                                                
+  CREATE TABLE "STUDENT"."TRANSACTION_UPLOAD"                                   
+   (	"ACCOUNT_NUMBER" VARCHAR2(10),                                             
+	"FIRST_NAME" VARCHAR2(20),                                                     
+	"MIDDLE_NAME" VARCHAR2(20),                                                    
+	"LAST_NAME" VARCHAR2(20),                                                      
+	"CHECKOUT_DATE" DATE,                                                          
+	"RETURN_DATE" DATE,                                                            
+	"RENTAL_ITEM_TYPE" VARCHAR2(12),                                               
+	"TRANSACTION_TYPE" VARCHAR2(14),                                               
+	"TRANSACTION_AMOUNT" NUMBER,                                                   
+	"TRANSACTION_DATE" DATE,                                                       
+	"ITEM_ID" NUMBER,                                                              
+	"PAYMENT_METHOD_TYPE" VARCHAR2(14),                                            
+	"PAYMENT_ACCOUNT_NUMBER" VARCHAR2(19)                                          
+   )                                                                            
+   ORGANIZATION EXTERNAL                                                        
+    ( TYPE ORACLE_LOADER                                                        
+      DEFAULT DIRECTORY "UPLOAD"                                                
+      ACCESS PARAMETERS                                                         
+      ( RECORDS DELIMITED BY NEWLINE CHARAC                                     
+TERSET US7ASCII                                                                 
+      BADFILE     'UPLOAD':'transaction_uplo                                    
+ad.bad'                                                                         
+      DISCARDFILE 'UPLOAD':'transaction_upload.dis'                             
+      LOGFILE     'UPLOAD':'transaction_                                        
+upload.log'                                                                     
+      FIELDS TERMINATED BY ','                                                  
+      OPTIONALLY ENCLOSED BY "'"                                                
+      MISSING FIELD VALUES ARE NULL                                             
+)                                                                               
+      LOCATION                                                                  
+       ( 'transaction_upload.csv'                                               
+       )                                                                        
+    )                                                                           
+   REJECT LIMIT UNLIMITED                                                       
+                                                                                
+
+1 row selected.
+
+SQL> SELECT   COUNT(*) AS "External Rows"
+  2  FROM     transaction_upload;
+
+External Rows                                                                   
+-------------                                                                   
+        11520                                                                   
+
+1 row selected.
+
+SQL> spool off

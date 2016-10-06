@@ -1,0 +1,566 @@
+SQL> 
+SQL> -- #1
+SQL> 
+SQL> ALTER TABLE rental_item
+  2    ADD (rental_item_price NUMBER)
+  3    ADD (rental_item_type NUMBER);
+
+Table altered.
+
+SQL> 
+SQL> 
+SQL> COLUMN TABLE_NAME	 FORMAT A14
+SQL> COLUMN column_id	 FORMAT 9999
+SQL> COLUMN column_name  FORMAT A22
+SQL> COLUMN data_type	 FORMAT A10
+SQL> SELECT   TABLE_NAME
+  2  ,	      column_id
+  3  ,	      column_name
+  4  ,	      data_type
+  5  FROM     user_tab_columns
+  6  WHERE    TABLE_NAME = 'RENTAL_ITEM'
+  7  ORDER BY 2;
+
+TABLE_NAME     COLUMN_ID COLUMN_NAME            DATA_TYPE                       
+-------------- --------- ---------------------- ----------                      
+RENTAL_ITEM            1 RENTAL_ITEM_ID         NUMBER                          
+RENTAL_ITEM            2 RENTAL_ID              NUMBER                          
+RENTAL_ITEM            3 ITEM_ID                NUMBER                          
+RENTAL_ITEM            4 CREATED_BY             NUMBER                          
+RENTAL_ITEM            5 CREATION_DATE          DATE                            
+RENTAL_ITEM            6 LAST_UPDATED_BY        NUMBER                          
+RENTAL_ITEM            7 LAST_UPDATE_DATE       DATE                            
+RENTAL_ITEM            8 RENTAL_ITEM_PRICE      NUMBER                          
+RENTAL_ITEM            9 RENTAL_ITEM_TYPE       NUMBER                          
+
+9 rows selected.
+
+SQL> 
+SQL> -- #2
+SQL> 
+SQL> FOR i IN (SELECT null FROM price WHERE table_name = 'PRICE') LOOP
+SP2-0734: unknown command beginning "FOR i IN (..." - rest of line ignored.
+SQL> 	 EXECUTE IMMEDIATE 'DROP TABLE price CASCADE CONSTRAINTS';
+BEGIN IMMEDIATE 'DROP TABLE price CASCADE CONSTRAINTS'; END;
+
+                *
+ERROR at line 1:
+ORA-06550: line 1, column 17:
+PLS-00103: Encountered the symbol "DROP TABLE price CASCADE CONSTRAINTS" when
+expecting one of the following: 
+:= . ( @ % ;
+The symbol ":=" was substituted for "DROP TABLE price CASCADE CONSTRAINTS" to
+continue. 
+
+
+SQL>   END LOOP;
+SP2-0042: unknown command "END LOOP" - rest of line ignored.
+SQL>   FOR i IN (SELECT null FROM user_sequences WHERE sequence_name = 'PRICE_S1') LOOP
+SP2-0734: unknown command beginning "FOR i IN (..." - rest of line ignored.
+SQL> 	 EXECUTE IMMEDIATE 'DROP SEQUENCE price_s1';
+BEGIN IMMEDIATE 'DROP SEQUENCE price_s1'; END;
+
+                *
+ERROR at line 1:
+ORA-06550: line 1, column 17:
+PLS-00103: Encountered the symbol "DROP SEQUENCE price_s1" when expecting one
+of the following: 
+:= . ( @ % ;
+The symbol ":=" was substituted for "DROP SEQUENCE price_s1" to continue. 
+
+
+SQL>   END LOOP;
+SP2-0042: unknown command "END LOOP" - rest of line ignored.
+SQL> END;
+SP2-0042: unknown command "END" - rest of line ignored.
+SQL> 
+SQL> CREATE TABLE price
+  2  ( PRICE_ID 	 NUMBER
+  3  , ITEM_ID		 NUMBER
+  4  , PRICE_TYPE	 NUMBER
+  5  , ACTIVE_FLAG	 VARCHAR2(1)	CONSTRAINT FLAG NOT NULL
+  6  , START_DATE	 DATE		CONSTRAINT DATE1 NOT NULL
+  7  , END_DATE 	 DATE
+  8  , AMMOUNT		 NUMBER
+  9  , CREATED_BY	 NUMBER
+ 10  , CREATION_DATE	 DATE		CONSTRAINT CDATE NOT NULL
+ 11  , LAST_UPDATED_BY	 NUMBER
+ 12  , LAST_UPDATE_DATE  DATE		CONSTRAINT LDATE NOT NULL
+ 13  , CONSTRAINT pk_price_1	  PRIMARY KEY(PRICE_ID)
+ 14  , CONSTRAINT fk_price_1	  FOREIGN KEY(PRICE_TYPE) REFERENCES common_lookup(COMMON_LOOKUP_ID)
+ 15  , CONSTRAINT fk_price_2	  FOREIGN KEY(CREATED_BY) REFERENCES system_user(SYSTEM_USER_ID)
+ 16  , CONSTRAINT fk_price_3	  FOREIGN KEY(LAST_UPDATED_BY) REFERENCES system_user(SYSTEM_USER_ID));
+CREATE TABLE price
+             *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+SQL> 
+SQL> CREATE SEQUENCE price START WITH 1001;
+CREATE SEQUENCE price START WITH 1001
+                *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+SQL> 
+SQL> COLUMN TABLE_NAME	FORMAT A10
+SQL> COLUMN column_id	FORMAT 9999
+SQL> COLUMN column_name FORMAT A18
+SQL> COLUMN data_type	FORMAT A10
+SQL> SELECT   TABLE_NAME
+  2  ,	      column_id
+  3  ,	      column_nameSELECT   c.last_name
+  4  ,	      COUNT(*)
+  5  FROM     rental r INNER JOIN rental_item ri
+  6  ON       r.rental_id = ri.rental_id INNER JOIN contact c
+  7  ON       r.customer_id = c.contact_id
+  8  WHERE   (SYSDATE - r.check_out_date) < 15
+  9  AND      c.last_name = 'Potter'
+ 10  GROUP BY c.last_name;
+,        column_nameSELECT   c.last_name
+                              *
+ERROR at line 3:
+ORA-00923: FROM keyword not found where expected 
+
+
+SQL> ,	      data_type
+SP2-0734: unknown command beginning ",        d..." - rest of line ignored.
+SQL> FROM     user_tab_columns
+SP2-0734: unknown command beginning "FROM     u..." - rest of line ignored.
+SQL> WHERE    TABLE_NAME = 'PRICE'
+SP2-0734: unknown command beginning "WHERE    T..." - rest of line ignored.
+SQL> ORDER BY 2;
+SP2-0042: unknown command "ORDER BY 2" - rest of line ignored.
+SP2-0044: For a list of known commands enter HELP
+and to leave enter EXIT.
+SQL> 
+SQL> -- #3
+SQL> -- a
+SQL> ALTER TABLE item RENAME COLUMN item_release_date TO release_date;
+
+Table altered.
+
+SQL> 
+SQL> OLUMN TABLE_NAME FORMAT A14
+SP2-0734: unknown command beginning "OLUMN TABL..." - rest of line ignored.
+SQL> COLUMN column_id  FORMAT 9999
+SQL> COLUMN column_name FORMAT A22
+SQL> COLUMN data_type	FORMAT A10
+SQL> SELECT   TABLE_NAME
+  2  ,	      column_id
+  3  ,	      column_name
+  4  ,	      data_type
+  5  FROM     user_tab_columns
+  6  WHERE    TABLE_NAME = 'ITEM'
+  7  ORDER BY 2;
+
+TABLE_NAME COLUMN_ID COLUMN_NAME            DATA_TYPE                           
+---------- --------- ---------------------- ----------                          
+ITEM               1 ITEM_ID                NUMBER                              
+ITEM               2 ITEM_BARCODE           VARCHAR2                            
+ITEM               3 ITEM_TYPE              NUMBER                              
+ITEM               4 ITEM_TITLE             VARCHAR2                            
+ITEM               5 ITEM_SUBTITLE          VARCHAR2                            
+ITEM               6 ITEM_RATING            VARCHAR2                            
+ITEM               7 RELEASE_DATE           DATE                                
+ITEM               8 CREATED_BY             NUMBER                              
+ITEM               9 CREATION_DATE          DATE                                
+ITEM              10 LAST_UPDATED_BY        NUMBER                              
+ITEM              11 LAST_UPDATE_DATE       DATE                                
+
+11 rows selected.
+
+SQL> --b
+SQL> INSERT INTO item VALUES
+  2  ( item_s1.nextval
+  3  ,'9736-05640-4'
+  4  ,(SELECT	common_lookup_id
+  5    FROM	common_lookup
+  6    WHERE	common_lookup_type = 'DVD_WIDE_SCREEN')
+  7  ,'X Men 9','The search for more money','PG-13'
+  8  , sysdate
+  9  , 3, SYSDATE, 3, SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO item VALUES
+  2  ( item_s1.nextval
+  3  ,'9736-05640-4'
+  4  ,(SELECT	common_lookup_id
+  5    FROM	common_lookup
+  6    WHERE	common_lookup_type = 'DVD_WIDE_SCREEN')
+  7  ,'Superman 16','Special Collector''s Edition','PG-13'
+  8  , sysdate
+  9  , 3, SYSDATE, 3, SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO item VALUES
+  2  ( item_s1.nextval
+  3  ,'9736-05640-4'
+  4  ,(SELECT	common_lookup_id
+  5    FROM	common_lookup
+  6    WHERE	common_lookup_type = 'DVD_WIDE_SCREEN')
+  7  ,'The Hunger Games 3','Killing Children has never been funnier','PG-13'
+  8  , sysdate
+  9  , 3, SYSDATE, 3, SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> SELECT   i.item_title
+  2  ,	      SYSDATE AS today
+  3  ,	      i.release_date
+  4  FROM     item i
+  5  WHERE   (SYSDATE - i.release_date) < 31;
+
+ITEM_TITLE                                                   TODAY              
+------------------------------------------------------------ ------------------ 
+RELEASE_DATE                                                                    
+------------------                                                              
+X Men 9                                                      29-MAY-14          
+29-MAY-14                                                                       
+                                                                                
+Superman 16                                                  29-MAY-14          
+29-MAY-14                                                                       
+                                                                                
+The Hunger Games 3                                           29-MAY-14          
+29-MAY-14                                                                       
+                                                                                
+
+3 rows selected.
+
+SQL> --c
+SQL> 
+SQL> INSERT INTO member VALUES
+  2  ( member_s1.nextval
+  3  , NULL
+  4  ,'B293-71449'
+  5  ,'1111-2222-3333-4444'
+  6  ,(SELECT	common_lookup_id
+  7    FROM	common_lookup
+  8    WHERE	common_lookup_context = 'MEMBER'
+  9    AND	common_lookup_type = 'DISCOVER_CARD')
+ 10  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO member VALUES
+*
+ERROR at line 1:
+ORA-02290: check constraint (STUDENT.NN_MEMBER_1) violated 
+
+
+SQL> 
+SQL> INSERT INTO contact VALUES
+  2  ( contact_s1.nextval
+  3  , member_s1.currval
+  4  ,(SELECT	common_lookup_id
+  5    FROM	common_lookup
+  6    WHERE	common_lookup_context = 'CONTACT'
+  7    AND	common_lookup_type = 'CUSTOMER')
+  8  ,'Harry','','Potter'
+  9  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO contact VALUES
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (STUDENT.FK_CONTACT_1) violated - parent key
+not found 
+
+
+SQL> 
+SQL> INSERT INTO address VALUES
+  2  ( address_s1.nextval
+  3  , contact_s1.currval
+  4  ,(SELECT	common_lookup_id
+  5    FROM	common_lookup
+  6    WHERE	common_lookup_type = 'HOME')
+  7  ,'Provo','UT','95192'
+  8  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO address VALUES
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (STUDENT.FK_ADDRESS_1) violated - parent key
+not found 
+
+
+SQL> 
+SQL> INSERT INTO street_address VALUES
+  2  ( street_address_s1.nextval
+  3  , address_s1.currval
+  4  ,'10 El Camino Real'
+  5  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO street_address VALUES
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (STUDENT.FK_S_ADDRESS_1) violated - parent key
+not found 
+
+
+SQL> 
+SQL> INSERT INTO contact VALUES
+  2  ( contact_s1.nextval
+  3  , member_s1.currval
+  4  ,(SELECT	common_lookup_id
+  5    FROM	common_lookup
+  6    WHERE	common_lookup_context = 'CONTACT'
+  7    AND	common_lookup_type = 'CUSTOMER')
+  8  ,'Ginny','','Potter'
+  9  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO contact VALUES
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (STUDENT.FK_CONTACT_1) violated - parent key
+not found 
+
+
+SQL> 
+SQL> INSERT INTO address VALUES
+  2  ( address_s1.nextval
+  3  , contact_s1.currval
+  4  ,(SELECT	common_lookup_id
+  5    FROM	common_lookup
+  6    WHERE	common_lookup_type = 'HOME')
+  7  ,'Provo','UT','95192'
+  8  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO address VALUES
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (STUDENT.FK_ADDRESS_1) violated - parent key
+not found 
+
+
+SQL> 
+SQL> INSERT INTO street_address VALUES
+  2  ( street_address_s1.nextval
+  3  , address_s1.currval
+  4  ,'10 El Camino Real'
+  5  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO street_address VALUES
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (STUDENT.FK_S_ADDRESS_1) violated - parent key
+not found 
+
+
+SQL> 
+SQL> INSERT INTO contact VALUES
+  2  ( contact_s1.nextval
+  3  , member_s1.currval
+  4  ,(SELECT	common_lookup_id
+  5    FROM	common_lookup
+  6    WHERE	common_lookup_context = 'CONTACT'
+  7    AND	common_lookup_type = 'CUSTOMER')
+  8  ,'Lily','Luna','Potter'
+  9  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO contact VALUES
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (STUDENT.FK_CONTACT_1) violated - parent key
+not found 
+
+
+SQL> 
+SQL> INSERT INTO address VALUES
+  2  ( address_s1.nextval
+  3  , contact_s1.currval
+  4  ,(SELECT	common_lookup_id
+  5    FROM	common_lookup
+  6    WHERE	common_lookup_type = 'HOME')
+  7  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO address VALUES
+            *
+ERROR at line 1:
+ORA-00947: not enough values 
+
+
+SQL> ,'Provo','UT','95192'
+SP2-0734: unknown command beginning ",'Provo','..." - rest of line ignored.
+SQL> 
+SQL> INSERT INTO street_address VALUES
+  2  ( street_address_s1.nextval
+  3  , address_s1.currval
+  4  ,'10 El Camino Real'
+  5  , 2, SYSDATE, 2, SYSDATE);
+INSERT INTO street_address VALUES
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (STUDENT.FK_S_ADDRESS_1) violated - parent key
+not found 
+
+
+SQL> 
+SQL> 
+SQL> COLUMN full_name FORMAT A20
+SQL> COLUMN city      FORMAT A10
+SQL> COLUMN state     FORMAT A10
+SQL> SELECT   c.last_name || ', ' || c.first_name AS full_name
+  2  ,	      a.city
+  3  ,	      a.state_province AS state
+  4  FROM     member m INNER JOIN contact c
+  5  ON       m.member_id = c.member_id INNER JOIN address a
+  6  ON       c.contact_id = a.contact_id INNER JOIN street_address sa
+  7  ON       a.address_id = sa.address_id
+  8  WHERE    c.last_name = 'Potter';
+
+no rows selected
+
+SQL> --d
+SQL> 
+SQL> INSERT INTO rental VALUES
+  2  ( rental_s1.nextval
+  3  ,(SELECT	contact_id
+  4    FROM	contact
+  5    WHERE	last_name = 'Potter'
+  6    AND	first_name = 'Harry')
+  7  , SYSDATE, SYSDATE + 1
+  8  , 3, SYSDATE, 3, SYSDATE);
+,(SELECT   contact_id
+           *
+ERROR at line 3:
+ORA-01400: cannot insert NULL into ("STUDENT"."RENTAL"."CUSTOMER_ID") 
+
+
+SQL> 
+SQL> INSERT INTO rental VALUES
+  2  ( rental_s1.nextval
+  3  ,(SELECT	contact_id
+  4    FROM	contact
+  5    WHERE	last_name = 'Potter'
+  6    AND	first_name = 'Ginny')
+  7  , SYSDATE, SYSDATE + 3
+  8  , 3, SYSDATE, 3, SYSDATE);
+,(SELECT   contact_id
+           *
+ERROR at line 3:
+ORA-01400: cannot insert NULL into ("STUDENT"."RENTAL"."CUSTOMER_ID") 
+
+
+SQL> 
+SQL> INSERT INTO rental VALUES
+  2  ( rental_s1.nextval
+  3  ,(SELECT	contact_id
+  4    FROM	contact
+  5    WHERE	last_name = 'Potter'
+  6    AND	first_name = 'Luna')
+  7  , SYSDATE, SYSDATE + 3
+  8  , 3, SYSDATE, 3, SYSDATE);
+,(SELECT   contact_id
+           *
+ERROR at line 3:
+ORA-01400: cannot insert NULL into ("STUDENT"."RENTAL"."CUSTOMER_ID") 
+
+
+SQL> 
+SQL> INSERT INTO rental_item
+  2  ( rental_item_id
+  3  , rental_id
+  4  , item_id
+  5  , created_by
+  6  , creation_date
+  7  , last_updated_by
+  8  , last_update_date)
+  9  VALUES
+ 10  ( rental_item_s1.nextval
+ 11  ,(SELECT	r.rental_id
+ 12    FROM	rental r
+ 13    ,	contact c
+ 14    WHERE	r.customer_id = c.contact_id
+ 15    AND	c.last_name = 'Potter'
+ 16    AND	c.first_name = 'Harry')
+ 17  ,(SELECT	i.item_id
+ 18    FROM	item i
+ 19    ,	common_lookup cl
+ 20    WHERE	i.item_title = 'Star Wars I'
+ 21    AND	i.item_subtitle = 'Phantom Menace'
+ 22    AND	i.item_type = cl.common_lookup_id
+ 23    AND	cl.common_lookup_type = 'DVD_WIDE_SCREEN')
+ 24  , 3, SYSDATE, 3, SYSDATE);
+,(SELECT   r.rental_id
+           *
+ERROR at line 11:
+ORA-01400: cannot insert NULL into ("STUDENT"."RENTAL_ITEM"."RENTAL_ID") 
+
+
+SQL> 
+SQL> INSERT INTO rental_item
+  2  ( rental_item_id
+  3  , rental_id
+  4  , item_id
+  5  , created_by
+  6  , creation_date
+  7  , last_updated_by
+  8  , last_update_date)
+  9  VALUES
+ 10  ( rental_item_s1.nextval
+ 11  ,(SELECT	r.rental_id
+ 12    FROM	rental r
+ 13    ,	contact c
+ 14    WHERE	r.customer_id = c.contact_id
+ 15    AND	c.last_name = 'Potter'
+ 16    AND	c.first_name = 'Ginny')
+ 17  ,(SELECT	i.item_id
+ 18    FROM	item i
+ 19    ,	common_lookup cl
+ 20    WHERE	i.item_title = 'Hunger Games 3'
+ 21    AND	i.item_subtitle = 'Killing Children has never been funnier'
+ 22    AND	i.item_type = cl.common_lookup_id
+ 23    AND	cl.common_lookup_type = 'DVD_WIDE_SCREEN')
+ 24  , 3, SYSDATE, 3, SYSDATE);
+,(SELECT   r.rental_id
+           *
+ERROR at line 11:
+ORA-01400: cannot insert NULL into ("STUDENT"."RENTAL_ITEM"."RENTAL_ID") 
+
+
+SQL> 
+SQL> INSERT INTO rental_item
+  2  ( rental_item_id
+  3  , rental_id
+  4  , item_id
+  5  , created_by
+  6  , creation_date
+  7  , last_updated_by
+  8  , last_update_date)
+  9  VALUES
+ 10  ( rental_item_s1.nextval
+ 11  ,(SELECT	r.rental_id
+ 12    FROM	rental r
+ 13    ,	contact c
+ 14    WHERE	r.customer_id = c.contact_id
+ 15    AND	c.last_name = 'Potter'
+ 16    AND	c.first_name = 'Luna')
+ 17  ,(SELECT	i.item_id
+ 18    FROM	item i
+ 19    ,	common_lookup cl
+ 20    WHERE	i.item_title = 'X Men 9'
+ 21    AND	i.item_subtitle = 'The search for more money'
+ 22    AND	i.item_type = cl.common_lookup_id
+ 23    AND	cl.common_lookup_type = 'DVD_WIDE_SCREEN')
+ 24  , 3, SYSDATE, 3, SYSDATE);
+,(SELECT   r.rental_id
+           *
+ERROR at line 11:
+ORA-01400: cannot insert NULL into ("STUDENT"."RENTAL_ITEM"."RENTAL_ID") 
+
+
+SQL> 
+SQL> SELECT   c.last_name
+  2  ,	      COUNT(*)
+  3  FROM     rental r INNER JOIN rental_item ri
+  4  ON       r.rental_id = ri.rental_id INNER JOIN contact c
+  5  ON       r.customer_id = c.contact_id
+  6  WHERE   (SYSDATE - r.check_out_date) < 15
+  7  AND      c.last_name = 'Potter'
+  8  GROUP BY c.last_name;
+
+no rows selected
+
+SQL> -- #4
+SQL> 
+SQL> 
+SQL> 
+SQL> spool off

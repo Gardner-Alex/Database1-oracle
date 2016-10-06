@@ -1,0 +1,98 @@
+SQL> -- Conditionally drop a table and sequence.
+SQL> BEGIN
+  2    FOR i IN (SELECT object_name
+  3  		 ,	object_type
+  4  		 FROM	user_objects
+  5  		 WHERE	object_name IN ('GRANDMA','GRANDMA_SEQ')) LOOP
+  6  	 IF i.object_type = 'TABLE' THEN
+  7  	   -- Use the cascade constraints to drop the dependent constraint.
+  8  	   EXECUTE IMMEDIATE 'DROP TABLE '||i.object_name||' CASCADE CONSTRAINTS';
+  9  	 ELSE
+ 10  	   EXECUTE IMMEDIATE 'DROP SEQUENCE '||i.object_name;
+ 11  	 END IF;
+ 12    END LOOP;
+ 13  END;
+ 14  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- Create the table.
+SQL> CREATE TABLE GRANDMA
+  2  ( grandma_id     NUMBER	   CONSTRAINT grandma_nn1 NOT NULL
+  3  , grandma_house  VARCHAR2(30) CONSTRAINT grandma_nn2 NOT NULL
+  4  , CONSTRAINT grandma_pk	   PRIMARY KEY (grandma_id)
+  5  );
+
+Table created.
+
+SQL> 
+SQL> -- Create the sequence.
+SQL> CREATE SEQUENCE grandma_seq;
+
+Sequence created.
+
+SQL> 
+SQL> -- Create a trigger to mimic automatic numbering.
+SQL> CREATE OR REPLACE TRIGGER BI_GRANDMA
+  2    BEFORE INSERT ON GRANDMA
+  3    FOR EACH ROW
+  4    WHEN (NEW.grandma_id IS NULL) -- Only fire when no ID value exists.
+  5  BEGIN
+  6    SELECT grandma_seq.NEXTVAL INTO :NEW.GRANDMA_ID FROM dual;
+  7  END;
+  8  /
+
+Trigger created.
+
+SQL> 
+SQL> -- Conditionally drop a table and sequence.
+SQL> BEGIN
+  2    FOR i IN (SELECT object_name
+  3  		 ,	object_type
+  4  		 FROM	user_objects
+  5  		 WHERE	object_name IN ('TWEETIE_BIRD','TWEETIE_BIRD_SEQ')) LOOP
+  6  	 IF i.object_type = 'TABLE' THEN
+  7  	   EXECUTE IMMEDIATE 'DROP TABLE '||i.object_name||' CASCADE CONSTRAINTS';
+  8  	 ELSE
+  9  	   EXECUTE IMMEDIATE 'DROP SEQUENCE '||i.object_name;
+ 10  	 END IF;
+ 11    END LOOP;
+ 12  END;
+ 13  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- Create the table with primary and foreign key out-of-line constraints.
+SQL> CREATE TABLE TWEETIE_BIRD
+  2  ( tweetie_bird_id	   NUMBER	 CONSTRAINT tweetie_bird_nn1 NOT NULL
+  3  , tweetie_bird_house  VARCHAR2(30)  CONSTRAINT tweetie_bird_nn2 NOT NULL
+  4  , grandma_id	   NUMBER	 CONSTRAINT tweetie_bird_nn3 NOT NULL
+  5  , CONSTRAINT tweetie_bird_pk	 PRIMARY KEY (tweetie_bird_id)
+  6  , CONSTRAINT tweetie_bird_fk	 FOREIGN KEY (grandma_id)
+  7    REFERENCES GRANDMA (GRANDMA_ID)
+  8  );
+
+Table created.
+
+SQL> 
+SQL> -- Create sequence.
+SQL> CREATE SEQUENCE tweetie_bird_seq;
+
+Sequence created.
+
+SQL> 
+SQL> -- Create trigger to mimic automatic numbering.
+SQL> CREATE OR REPLACE TRIGGER BI_TWEETIE_BIRD
+  2    BEFORE INSERT ON TWEETIE_BIRD
+  3    FOR EACH ROW
+  4    WHEN (NEW.tweetie_bird_id IS NULL) -- Only fire when no ID value exists.
+  5  BEGIN
+  6    SELECT tweetie_bird_seq.NEXTVAL INTO :NEW.tweetie_bird_id FROM dual;
+  7  END;
+  8  /
+
+Trigger created.
+
+SQL> SPOOL OFF

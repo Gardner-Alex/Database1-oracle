@@ -1,0 +1,34 @@
+@/home/student/Data/cit225/oracle/lib/create_oracle_store.sql
+@/home/student/Data/cit225/oracle/lib/seed_oracle_store.sql
+@/home/student/Data/cit225/oracle/lab5/lab5.sql
+
+spool lab6.log
+
+-- #1
+
+ALTER TABLE RENTAL_ITEM
+  ADD (RETAIL_ITEM_PRICE NUMBER);
+  ADD (RETAIL_ITEM_TYPE NUMBER);
+
+
+COLUMN TABLE_NAME   FORMAT A14
+COLUMN column_id    FORMAT 9999
+COLUMN column_name  FORMAT A22
+COLUMN data_type    FORMAT A10
+SELECT   TABLE_NAME
+,        column_id
+,        column_name
+,        data_type
+FROM     user_tab_columns
+WHERE    TABLE_NAME = 'RENTAL_ITEM'
+ORDER BY 2;
+
+
+-- #2
+
+-- #3
+
+-- #4
+
+
+spool off

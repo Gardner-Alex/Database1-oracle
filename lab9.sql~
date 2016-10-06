@@ -1,0 +1,659 @@
+@/home/student/Data/cit225/oracle/lab8/lab8.sql
+
+spool lab9.log
+-- 1
+-- a
+BEGIN
+  FOR i IN (SELECT null FROM user_tables WHERE table_name = 'TRANSACTION') LOOP
+    EXECUTE IMMEDIATE 'DROP TABLE transaction CASCADE CONSTRAINTS';
+  END LOOP;
+  FOR i IN (SELECT null FROM user_sequences WHERE sequence_name = 'TRANSACTION_S1') LOOP
+    EXECUTE IMMEDIATE 'DROP SEQUENCE transaction_s1';
+  END LOOP;
+END;
+/
+
+CREATE TABLE transaction
+( transaction_id            NUMBER
+, transaction_account       VARCHAR2(15)   CONSTRAINT ACC1   NOT NULL
+, transaction_type          NUMBER         CONSTRAINT TYP1   NOT NULL
+, transaction_date          DATE           CONSTRAINT DAT1   NOT NULL
+, transaction_amount        NUMBER         CONSTRAINT AMU1   NOT NULL
+, rental_id	            NUMBER         CONSTRAINT REN1   NOT NULL
+, payment_method_type	    NUMBER         CONSTRAINT PMT1   NOT NULL
+, payment_account_number    VARCHAR2(20)   CONSTRAINT ACCN1  NOT NULL
+, created_by                NUMBER         CONSTRAINT CRE1   NOT NULL
+, creation_date             DATE           CONSTRAINT CDATE1 NOT NULL
+, last_updated_by           NUMBER         CONSTRAINT LUB1   NOT NULL
+, last_update_date          DATE           CONSTRAINT LDATE1 NOT NULL
+, CONSTRAINT pk_trans_1      PRIMARY KEY(transaction_id)
+, CONSTRAINT fk_trans_1      FOREIGN KEY(transaction_type) REFERENCES common_lookup(common_lookup_id)
+, CONSTRAINT fk_trans_2      FOREIGN KEY(rental_id) REFERENCES rental(rental_id)
+, CONSTRAINT fk_trans_3      FOREIGN KEY(payment_method_type) REFERENCES common_lookup(common_lookup_id)
+, CONSTRAINT fk_trans_4      FOREIGN KEY(created_by) REFERENCES system_user(system_user_id)
+, CONSTRAINT fk_trans_5      FOREIGN KEY(last_updated_by) REFERENCES system_user(system_user_id));
+
+CREATE SEQUENCE transaction_s1 START WITH 1;
+
+
+COLUMN table_name   FORMAT A14
+COLUMN column_id    FORMAT 9999
+COLUMN column_name  FORMAT A22
+COLUMN data_type    FORMAT A12
+SELECT   table_name
+,        column_id
+,        column_name
+,        CASE
+           WHEN nullable = 'N' THEN 'NOT NULL'
+           ELSE ''
+         END AS nullable
+,        CASE
+           WHEN data_type IN ('CHAR','VARCHAR2','NUMBER') THEN
+             data_type||'('||data_length||')'
+           ELSE
+             data_type
+         END AS data_type
+FROM     user_tab_columns
+WHERE    table_name = 'TRANSACTION'
+ORDER BY 2;
+
+--b
+
+CREATE UNIQUE INDEX NATURAL_KEY
+ ON transaction (rental_id, transaction_type, transaction_date, payment_method_type, payment_account_number, transaction_account);
+
+COLUMN table_name       FORMAT A12
+COLUMN index_name       FORMAT A16
+COLUMN uniqueness       FORMAT A8
+COLUMN column_position  FORMAT 9999
+COLUMN column_name      FORMAT A24
+SELECT   i.table_name
+,        i.index_name
+,        i.uniqueness
+,        ic.column_position
+,        ic.column_name
+FROM     user_indexes i INNER JOIN user_ind_columns ic
+ON       i.index_name = ic.index_name
+WHERE    i.table_name = 'TRANSACTION'
+AND      i.uniqueness = 'UNIQUE'
+AND      i.index_name = 'NATURAL_KEY'; 
+
+--2
+
+INSERT INTO common_lookup
+( common_lookup_id
+, common_lookup_table
+, common_lookup_column
+, common_lookup_code
+, common_lookup_type
+, common_lookup_meaning
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'TRANSACTION'
+, 'TRANSACTION_TYPE'
+, 'CR'
+, 'CREDIT'
+, 'Credit'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO common_lookup
+( common_lookup_id
+, common_lookup_table
+, common_lookup_column
+, common_lookup_code
+, common_lookup_type
+, common_lookup_meaning
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'TRANSACTION'
+, 'TRANSACTION_TYPE'
+, 'DR'
+, 'DEBIT'
+, 'Debit'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO common_lookup
+( common_lookup_id
+, common_lookup_table
+, common_lookup_column
+, common_lookup_type
+, common_lookup_meaning
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'TRANSACTION'
+, 'PAYMENT_METHOD_TYPE'
+, 'DISCOVER_CARD'
+, 'Discover card'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO common_lookup
+( common_lookup_id
+, common_lookup_table
+, common_lookup_column
+, common_lookup_type
+, common_lookup_meaning
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'TRANSACTION'
+, 'PAYMENT_METHOD_TYPE'
+, 'VISA_CARD'
+, 'Visa_card'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO common_lookup
+( common_lookup_id
+, common_lookup_table
+, common_lookup_column
+, common_lookup_type
+, common_lookup_meaning
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'TRANSACTION'
+, 'PAYMENT_METHOD_TYPE'
+, 'MASTER_CARD'
+, 'Master card'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO common_lookup
+( common_lookup_id
+, common_lookup_table
+, common_lookup_column
+, common_lookup_type
+, common_lookup_meaning
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'TRANSACTION'
+, 'PAYMENT_METHOD_TYPE'
+, 'CASH'
+, 'Cash'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+COLUMN common_lookup_table  FORMAT A20 HEADING "COMMON_LOOKUP_TABLE"
+COLUMN common_lookup_column FORMAT A20 HEADING "COMMON_LOOKUP_COLUMN"
+COLUMN common_lookup_type   FORMAT A20 HEADING "COMMON_LOOKUP_TYPE"
+SELECT   common_lookup_table
+,        common_lookup_column
+,        common_lookup_type
+FROM     common_lookup
+WHERE    common_lookup_table = 'TRANSACTION'
+AND      common_lookup_column IN ('TRANSACTION_TYPE','PAYMENT_METHOD_TYPE')
+ORDER BY 1, 2, 3 DESC;
+
+-- 3
+
+--a
+
+BEGIN
+  FOR i IN (SELECT null FROM user_tables WHERE table_name = 'AIRPORT') LOOP
+    EXECUTE IMMEDIATE 'DROP TABLE airport CASCADE CONSTRAINTS';
+  END LOOP;
+  FOR i IN (SELECT null FROM user_sequences WHERE sequence_name = 'AIRPORT_S1') LOOP
+    EXECUTE IMMEDIATE 'DROP SEQUENCE airport_s1';
+  END LOOP;
+END;
+/
+
+CREATE TABLE airport
+( airport_id            NUMBER
+, airport_code          VARCHAR2(3)        CONSTRAINT API1   NOT NULL
+, airport_city          VARCHAR2(30)       CONSTRAINT APC1   NOT NULL
+, city                  VARCHAR2(30)       CONSTRAINT APCI1   NOT NULL
+, state_province        VARCHAR2(30)       CONSTRAINT SP1   NOT NULL
+, created_by                NUMBER         CONSTRAINT CRBY1   NOT NULL
+, creation_date             DATE           CONSTRAINT CDAT1 NOT NULL
+, last_updated_by           NUMBER         CONSTRAINT LB1   NOT NULL
+, last_update_date          DATE           CONSTRAINT LDAT1 NOT NULL
+, CONSTRAINT pk_air_1      PRIMARY KEY(airport_id)
+, CONSTRAINT fk_air_1      FOREIGN KEY(created_by) REFERENCES system_user(system_user_id)
+, CONSTRAINT fk_air_2      FOREIGN KEY(last_updated_by) REFERENCES system_user(system_user_id));
+
+CREATE SEQUENCE airport_s1 START WITH 1;
+
+
+
+COLUMN table_name   FORMAT A14
+COLUMN column_id    FORMAT 9999
+COLUMN column_name  FORMAT A22
+COLUMN data_type    FORMAT A12
+SELECT   table_name
+,        column_id
+,        column_name
+,        CASE
+           WHEN nullable = 'N' THEN 'NOT NULL'
+           ELSE ''
+         END AS nullable
+,        CASE
+           WHEN data_type IN ('CHAR','VARCHAR2','NUMBER') THEN
+             data_type||'('||data_length||')'
+           ELSE
+             data_type
+         END AS data_type
+FROM     user_tab_columns
+WHERE    table_name = 'AIRPORT'
+ORDER BY 2;
+
+-- b
+
+CREATE UNIQUE INDEX NK_AIRPORT
+ ON airport (airport_code, airport_city, city, state_province);
+
+COLUMN table_name       FORMAT A12
+COLUMN index_name       FORMAT A16
+COLUMN uniqueness       FORMAT A8
+COLUMN column_position  FORMAT 9999
+COLUMN column_name      FORMAT A24
+SELECT   i.table_name
+,        i.index_name
+,        i.uniqueness
+,        ic.column_position
+,        ic.column_name
+FROM     user_indexes i INNER JOIN user_ind_columns ic
+ON       i.index_name = ic.index_name
+WHERE    i.table_name = 'AIRPORT'
+AND      i.uniqueness = 'UNIQUE'
+AND      i.index_name = 'NK_AIRPORT';
+
+-- c
+
+INSERT INTO airport
+( airport_id
+, airport_code
+, airport_city
+, city
+, state_province
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'LAX'
+, 'Los Angeles'
+, 'Los Angeles'
+, 'California'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO airport
+( airport_id
+, airport_code
+, airport_city
+, city
+, state_province
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'SLC'
+, 'Salt Lake City'
+, 'Provo'
+, 'Utah'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO airport
+( airport_id
+, airport_code
+, airport_city
+, city
+, state_province
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'SLC'
+, 'Salt Lake City'
+, 'Spanish Fork'
+, 'Utah'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO airport
+( airport_id
+, airport_code
+, airport_city
+, city
+, state_province
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'SFO'
+, 'San Francisco'
+, 'San Francisco'
+, 'California'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO airport
+( airport_id
+, airport_code
+, airport_city
+, city
+, state_province
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'SJC'
+, 'San Jose'
+, 'San Jose'
+, 'California'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+INSERT INTO airport
+( airport_id
+, airport_code
+, airport_city
+, city
+, state_province
+, created_by
+, creation_date
+, last_updated_by
+, last_update_date)
+VALUES
+( common_lookup_s1.NEXTVAL
+, 'SJC'
+, 'San Jose'
+, 'San Carlos'
+, 'California'
+, 1
+, SYSDATE
+, 1
+, SYSDATE);
+
+COLUMN code           FORMAT A4
+COLUMN airport_city   FORMAT A14
+COLUMN city           FORMAT A14
+COLUMN state_province FORMAT A10 HEADING "State or|Province"
+SELECT   airport_code AS code
+,        airport_city
+,        city
+,        state_province
+FROM     airport;
+
+-- d
+
+BEGIN
+  FOR i IN (SELECT null FROM user_tables WHERE table_name = 'ACCOUNT_LIST') LOOP
+    EXECUTE IMMEDIATE 'DROP TABLE account_list CASCADE CONSTRAINTS';
+  END LOOP;
+  FOR i IN (SELECT null FROM user_sequences WHERE sequence_name = 'ACCOUNT_LIST_S1') LOOP
+    EXECUTE IMMEDIATE 'DROP SEQUENCE account_list_s1';
+  END LOOP;
+END;
+/
+
+CREATE TABLE account_list
+( account_list_id           NUMBER
+, account_number            VARCHAR2(10)     CONSTRAINT ACN1   NOT NULL
+, consumed_date             DATE            
+, consumed_by               NUMBER          
+, created_by                NUMBER          CONSTRAINT CBY1   NOT NULL
+, creation_date             DATE            CONSTRAINT CDT1   NOT NULL
+, last_updated_by           NUMBER          CONSTRAINT LAB1   NOT NULL
+, last_update_date          DATE            CONSTRAINT LADT1  NOT NULL
+, CONSTRAINT pk_account_list_1      PRIMARY KEY(account_list_id)
+, CONSTRAINT fk_account_list_1      FOREIGN KEY(consumed_by) REFERENCES system_user(system_user_id)
+, CONSTRAINT fk_account_list_2      FOREIGN KEY(created_by) REFERENCES system_user(system_user_id)
+, CONSTRAINT fk_account_list_3      FOREIGN KEY(last_updated_by) REFERENCES system_user(system_user_id));
+
+CREATE SEQUENCE account_list_s1 START WITH 1;
+
+
+COLUMN table_name   FORMAT A14
+COLUMN column_id    FORMAT 9999
+COLUMN column_name  FORMAT A22
+COLUMN data_type    FORMAT A12
+SELECT   table_name
+,        column_id
+,        column_name
+,        CASE
+           WHEN nullable = 'N' THEN 'NOT NULL'
+           ELSE ''
+         END AS nullable
+,        CASE
+           WHEN data_type IN ('CHAR','VARCHAR2','NUMBER') THEN
+             data_type||'('||data_length||')'
+           ELSE
+             data_type
+         END AS data_type
+FROM     user_tab_columns
+WHERE    table_name = 'ACCOUNT_LIST'
+ORDER BY 2;
+
+-- e
+
+CREATE OR REPLACE PROCEDURE seed_account_list IS
+BEGIN
+  /* Set savepoint. */
+  SAVEPOINT all_or_none;
+ 
+  FOR i IN (SELECT DISTINCT airport_code FROM airport) LOOP
+    FOR j IN 1..50 LOOP
+ 
+      INSERT INTO account_list
+      VALUES
+      ( account_list_s1.NEXTVAL
+      , i.airport_code||'-'||LPAD(j,6,'0')
+      , NULL
+      , NULL
+      , 2
+      , SYSDATE
+      , 2
+      , SYSDATE);
+    END LOOP;
+  END LOOP;
+ 
+  /* Commit the writes as a group. */
+  COMMIT;
+ 
+EXCEPTION
+  WHEN OTHERS THEN
+    /* This undoes all DML statements to this point in the procedure. */
+    ROLLBACK TO SAVEPOINT all_or_none;
+END;
+/
+
+EXECUTE seed_account_list();
+
+COLUMN object_name FORMAT A18
+COLUMN object_type FORMAT A12
+SELECT   object_name
+,        object_type
+FROM     user_objects
+WHERE    object_name = 'SEED_ACCOUNT_LIST';
+
+
+COLUMN airport FORMAT A7
+SELECT   SUBSTR(account_number,1,3) AS "Airport"
+,        COUNT(*) AS "# Accounts"
+FROM     account_list
+WHERE    consumed_date IS NULL
+GROUP BY SUBSTR(account_number,1,3)
+ORDER BY 1;
+
+-- f
+
+UPDATE address
+SET    state_province = 'California'
+WHERE  state_province = 'CA';
+
+-- g
+
+CREATE OR REPLACE PROCEDURE update_member_account IS
+  lv_account_number VARCHAR2(10);  
+  CURSOR member_cursor IS
+    SELECT   DISTINCT
+             m.member_id
+    ,        a.city
+    ,        a.state_province
+    FROM     member m INNER JOIN contact c
+    ON       m.member_id = c.member_id INNER JOIN address a
+    ON       c.contact_id = a.contact_id
+    ORDER BY m.member_id;
+ 
+BEGIN
+ 
+  SAVEPOINT all_or_none;
+ 
+  FOR i IN member_cursor LOOP
+      
+      SELECT al.account_number
+      INTO   lv_account_number
+      FROM   account_list al INNER JOIN airport ap
+      ON     SUBSTR(al.account_number,1,3) = ap.airport_code
+      WHERE  ap.city = i.city
+      AND    ap.state_province = i.state_province
+      AND    consumed_by IS NULL
+      AND    consumed_date IS NULL
+      AND    ROWNUM < 2;
+      
+      UPDATE member
+      SET    account_number = lv_account_number
+      WHERE  member_id = i.member_id;
+ 
+           
+      UPDATE account_list
+      SET    consumed_by = 2
+      ,      consumed_date = SYSDATE
+      WHERE  account_number = lv_account_number;
+ 
+  END LOOP;
+  COMMIT;
+ 
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    dbms_output.put_line('You have an error in your AIRPORT table inserts.');
+ 
+  
+    ROLLBACK TO SAVEPOINT all_or_none;
+  WHEN OTHERS THEN
+    ROLLBACK TO SAVEPOINT all_or_none;
+END;
+/
+
+COLUMN object_name FORMAT A22
+COLUMN object_type FORMAT A12
+SELECT   object_name
+,        object_type
+FROM     user_objects
+WHERE    object_name = 'UPDATE_MEMBER_ACCOUNT';
+
+EXECUTE update_member_account();
+
+COLUMN member_id      FORMAT 999999 HEADING "Member|ID #"
+COLUMN last_name      FORMAT A10    HEADING "Last|Name"
+COLUMN account_number FORMAT A10 HEADING "Account|Number"
+COLUMN city           FORMAT A16 HEADING "City"
+COLUMN state_province FORMAT A10 HEADING "State or|Province"
+ 
+-- Query distinct members and addresses.
+SELECT   DISTINCT
+         m.member_id
+,        c.last_name
+,        m.account_number
+,        a.city
+,        a.state_province
+FROM     member m INNER JOIN contact c
+ON       m.member_id = c.member_id INNER JOIN address a
+ON       c.contact_id = a.contact_id
+ORDER BY 1;
+
+-- 4
+
+BEGIN
+  FOR i IN (SELECT null FROM user_tables WHERE table_name = 'TRANSACTION_UPLOAD') LOOP
+    EXECUTE IMMEDIATE 'DROP TABLE transaction_upload CASCADE CONSTRAINTS';
+  END LOOP;
+  FOR i IN (SELECT null FROM user_sequences WHERE sequence_name = 'TRANSACTION_UPLOAD_S1') LOOP
+    EXECUTE IMMEDIATE 'DROP SEQUENCE transaction_upload_s1';
+  END LOOP;
+END;
+/
+
+CREATE TABLE transaction_upload
+( account_number            VARCHAR2(10)
+, first_name                VARCHAR2(20)     
+, middle_name               VARCHAR2(20)            
+, last_name                 VARCHAR2(20)          
+, checkout_date             DATE          
+, return_date               DATE            
+, rental_item_type          VARCHAR2(12)          
+, transaction_type          VARCHAR2(14)
+, transaction_amount        NUMBER
+, transaction_date          DATE
+, item_id                   NUMBER
+, payment_method_type       VARCHAR2(14)
+, payment_account_number    VARCHAR2(19));
+
+
+
+
+SET LONG 200000  -- Enables the display of the full statement.
+SELECT   dbms_metadata.get_ddl('TABLE','TRANSACTION_UPLOAD') AS "Table Description"
+FROM     dual;
+SELECT   COUNT(*) AS "External Rows"
+FROM     transaction_upload;
+spool off

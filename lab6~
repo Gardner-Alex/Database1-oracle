@@ -1,0 +1,18 @@
+@/home/student/Data/cit225/oracle/lib/create_oracle_store.sql
+@/home/student/Data/cit225/oracle/lib/seed_oracle_store.sql
+@/home/student/Data/cit225/oracle/lab5/lab5.sql
+
+spool lab6.log
+
+-- #1
+
+
+
+-- #2
+
+-- #3
+
+-- #4
+
+
+spool off

@@ -1,0 +1,217 @@
+SQL> 
+SQL> -- #1
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_code
+  6  , common_lookup_type
+  7  , common_lookup_meaning
+  8  , created_by
+  9  , creation_date
+ 10  , last_updated_by
+ 11  , last_update_date)
+ 12  VALUES
+ 13  (common_lookup_s1.NEXTVAL
+ 14  , 'PRICE'
+ 15  , 'ACTIVE_FLAG'
+ 16  , 'Y'
+ 17  , 'YES'
+ 18  , 'yes'
+ 19  , 1
+ 20  , SYSDATE
+ 21  , 1
+ 22  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_code
+  6  , common_lookup_type
+  7  , common_lookup_meaning
+  8  , created_by
+  9  , creation_date
+ 10  , last_updated_by
+ 11  , last_update_date)
+ 12  VALUES
+ 13  (common_lookup_s1.NEXTVAL
+ 14  , 'PRICE'
+ 15  , 'ACTIVE_FLAG'
+ 16  , 'N'
+ 17  , 'NO'
+ 18  , 'no'
+ 19  , 1
+ 20  , SYSDATE
+ 21  , 1
+ 22  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> COLUMN common_lookup_table  FORMAT A20 HEADING "COMMON_LOOKUP_TABLE"
+SQL> COLUMN common_lookup_column FORMAT A20 HEADING "COMMON_LOOKUP_COLUMN"
+SQL> COLUMN common_lookup_type	 FORMAT A20 HEADING "COMMON_LOOKUP_TYPE"
+SQL> SELECT   common_lookup_table
+  2  ,	      common_lookup_column
+  3  ,	      common_lookup_type
+  4  FROM     common_lookup
+  5  WHERE    common_lookup_table = 'PRICE'
+  6  AND      common_lookup_column = 'ACTIVE_FLAG'
+  7  ORDER BY 1, 2, 3 DESC;
+
+COMMON_LOOKUP_TABLE  COMMON_LOOKUP_COLUMN COMMON_LOOKUP_TYPE                    
+-------------------- -------------------- --------------------                  
+PRICE                ACTIVE_FLAG          YES                                   
+                                                                                
+                                                                                
+PRICE                ACTIVE_FLAG          NO                                    
+                                                                                
+                                                                                
+
+2 rows selected.
+
+SQL> 
+SQL> -- #2
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_code
+  6  , common_lookup_type
+  7  , common_lookup_meaning
+  8  , created_by
+  9  , creation_date
+ 10  , last_updated_by
+ 11  , last_update_date)
+ 12  VALUES
+ 13  (common_lookup_s1.NEXTVAL
+ 14  , 'PRICE'
+ 15  , 'PRICE_TYPE'
+ 16  , '1'
+ 17  , '1-DAY RENTAL'
+ 18  , '1-Day Rental'
+ 19  , 1
+ 20  , SYSDATE
+ 21  , 1
+ 22  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_code
+  6  , common_lookup_type
+  7  , common_lookup_meaning
+  8  , created_by
+  9  , creation_date
+ 10  , last_updated_by
+ 11  , last_update_date)
+ 12  VALUES
+ 13  (common_lookup_s1.NEXTVAL
+ 14  , 'PRICE'
+ 15  , 'PRICE_TYPE'
+ 16  , '2'
+ 17  , '2-DAY RENTAL'
+ 18  , '2-Day Rental'
+ 19  , 1
+ 20  , SYSDATE
+ 21  , 1
+ 22  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup
+  2  ( common_lookup_id
+  3  , common_lookup_table
+  4  , common_lookup_column
+  5  , common_lookup_code
+  6  , common_lookup_type
+  7  , common_lookup_meaning
+  8  , created_by
+  9  , creation_date
+ 10  , last_updated_by
+ 11  , last_update_date)
+ 12  VALUES
+ 13  (common_lookup_s1.NEXTVAL
+ 14  , 'PRICE'
+ 15  , 'PRICE_TYPE'
+ 16  , '3'
+ 17  , '3-DAY RENTAL'
+ 18  , '3-Day Rental'
+ 19  , 1
+ 20  , SYSDATE
+ 21  , 1
+ 22  , SYSDATE);
+
+1 row created.
+
+SQL> 
+SQL> COLUMN common_lookup_table  FORMAT A20 HEADING "COMMON_LOOKUP_TABLE"
+SQL> COLUMN common_lookup_column FORMAT A20 HEADING "COMMON_LOOKUP_COLUMN"
+SQL> COLUMN common_lookup_type	 FORMAT A20 HEADING "COMMON_LOOKUP_TYPE"
+SQL> SELECT   common_lookup_table
+  2  ,	      common_lookup_column
+  3  ,	      common_lookup_type
+  4  FROM     common_lookup
+  5  WHERE    common_lookup_table = 'PRICE'
+  6  AND      common_lookup_column = 'PRICE_TYPE'
+  7  ORDER BY 1, 2, 3;
+
+COMMON_LOOKUP_TABLE  COMMON_LOOKUP_COLUMN COMMON_LOOKUP_TYPE                    
+-------------------- -------------------- --------------------                  
+PRICE                PRICE_TYPE           1-DAY RENTAL                          
+                                                                                
+                                                                                
+PRICE                PRICE_TYPE           2-DAY RENTAL                          
+                                                                                
+                                                                                
+PRICE                PRICE_TYPE           3-DAY RENTAL                          
+                                                                                
+                                                                                
+
+3 rows selected.
+
+SQL> 
+SQL> -- #3
+SQL> 
+SQL> -- a
+SQL> UPDATE   rental_item ri
+  2  SET      rental_item_type =
+  3  		(SELECT   cl.common_lookup_id
+  4  		 FROM	  common_lookup cl
+  5  		 WHERE	  cl.common_lookup_code =
+  6  		   (SELECT   cast(r.return_date - r.check_out_date as VARCHAR2(30))
+  7  		    FROM     rental r
+  8  		    WHERE    r.rental_id = ri.rental_id));
+
+12 rows updated.
+
+SQL> 
+SQL> SELECT   ROW_COUNT
+  2  ,	      col_count
+  3  FROM    (SELECT   COUNT(*) AS ROW_COUNT
+  4  	      FROM     rental_item) rc CROSS JOIN
+  5  	     (SELECT   COUNT(rental_item_type) AS col_count
+  6  	      FROM     rental_item
+  7  	      WHERE    rental_item_type IS NOT NULL) cc
+  8  
+SQL> -- b
+SQL> 
+SQL> -- #4
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> spool off

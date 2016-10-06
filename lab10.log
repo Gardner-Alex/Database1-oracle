@@ -1,0 +1,120 @@
+SQL> -- 1
+SQL> 
+SQL> SELECT   DISTINCT c.contact_id
+  2  FROM     member m INNER JOIN transaction_upload tu
+  3  ON       m.account_number = tu.account_number INNER JOIN contact c
+  4  ON       m.member_id = c.member_id
+  5  WHERE    c.first_name = tu.first_name
+  6  -- AND	 NVL(c.middle_name,'x') = NVL(tu.middle_name,'x')
+  7  AND      c.last_name = tu.last_name;
+
+CONTACT_ID                                                                      
+----------                                                                      
+      1003                                                                      
+      1009                                                                      
+      1011                                                                      
+      1013                                                                      
+      1006                                                                      
+      1001                                                                      
+      1002                                                                      
+      1007                                                                      
+      1004                                                                      
+      1010                                                                      
+      1015                                                                      
+      1005                                                                      
+      1008                                                                      
+      1014                                                                      
+      1012                                                                      
+
+15 rows selected.
+
+SQL> 
+SQL> 
+SQL> -- a
+SQL> 
+SQL> SELECT   COUNT(*)
+  2  FROM     member m INNER JOIN contact c
+  3  ON       m.member_id = c.member_id;
+
+  COUNT(*)                                                                      
+----------                                                                      
+        15                                                                      
+
+1 row selected.
+
+SQL> 
+SQL> -- b
+SQL> 
+SQL> SELECT   COUNT(*)
+  2  FROM     contact c INNER JOIN transaction_upload tu
+  3  ON       c.first_name = tu.first_name
+  4  AND      NVL(c.middle_name,'x') = NVL(tu.middle_name,'x')
+  5  AND      c.last_name = tu.last_name;
+
+  COUNT(*)                                                                      
+----------                                                                      
+     11520                                                                      
+
+1 row selected.
+
+SQL> 
+SQL> -- c
+SQL> 
+SQL> SELECT   COUNT(*)
+  2  FROM     member m INNER JOIN contact c
+  3  ON       m.member_id = c.member_id INNER JOIN transaction_upload tu
+  4  ON       c.first_name = tu.first_name
+  5  AND      NVL(c.middle_name,'x') = NVL(tu.middle_name,'x')
+  6  AND      c.last_name = tu.last_name
+  7  AND      m.account_number = tu.account_number;
+
+  COUNT(*)                                                                      
+----------                                                                      
+     11520                                                                      
+
+1 row selected.
+
+SQL> 
+SQL> -- d
+SQL> 
+SQL> -- e
+SQL> 
+SQL> -- f
+SQL> 
+SQL> -- g
+SQL> 
+SQL> -- h
+SQL> 
+SQL> -- i
+SQL> 
+SQL> SET NULL '<Null>'
+SQL> COLUMN rental_id	     FORMAT 9999 HEADING "Rental|ID #"
+SQL> COLUMN customer	     FORMAT 9999 HEADING "Customer|ID #"
+SQL> COLUMN check_out_date   FORMAT A9	 HEADING "Check Out|Date"
+SQL> COLUMN return_date      FORMAT A10  HEADING "Return|Date"
+SQL> COLUMN created_by	     FORMAT 9999 HEADING "Created|By"
+SQL> COLUMN creation_date    FORMAT A10  HEADING "Creation|Date"
+SQL> COLUMN last_updated_by  FORMAT 9999 HEADING "Last|Update|By"
+SQL> COLUMN last_update_date FORMAT A10  HEADING "Last|Updated"
+SQL> 
+SQL> SELECT   COUNT(*) AS "Rental before count"
+  2  FROM     rental;
+
+Rental before count                                                             
+-------------------                                                             
+                  8                                                             
+
+1 row selected.
+
+SQL> 
+SQL> SELECT   COUNT(*) AS "Rental after count"
+  2  FROM     rental;
+
+Rental after count                                                              
+------------------                                                              
+                 8                                                              
+
+1 row selected.
+
+SQL> 
+SQL> spool off
